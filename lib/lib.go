@@ -11,7 +11,7 @@ import (
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
-	"github.com/nexient-llc/tf-caf-terratest-common/types"
+	"github.com/nexient-llc/lcaf-component-terratest-common/types"
 )
 
 const (

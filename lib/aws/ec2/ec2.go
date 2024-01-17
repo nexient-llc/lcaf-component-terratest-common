@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2_types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	"github.com/nexient-llc/tf-caf-terratest-common/types"
+	"github.com/nexient-llc/lcaf-component-terratest-common/types"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/exp/slices"
 )

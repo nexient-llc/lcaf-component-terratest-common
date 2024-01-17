@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	"github.com/gruntwork-io/terratest/modules/logger"
-	"github.com/nexient-llc/tf-caf-terratest-common/lib/tags"
+	"github.com/nexient-llc/lcaf-component-terratest-common/lib/tags"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
