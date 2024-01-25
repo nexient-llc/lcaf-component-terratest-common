@@ -83,6 +83,75 @@ func TestComposableComplete(t *testing.T, ctx types.TestContext) {
 ====
 ```
 
+## Examples
+
+### Launch test suite in ReadOnly mode - part of after deployment regression test
+No cloud resources will be created nor teared down
+```
+tf-module-skeleton $ make go/readonly_test
+```
+
+### Launch test suite in Regular mode
+```
+tf-module-skeleton $ make go/test
+```
+
+### Many to many relation between tests and IaC being tested
+
+```
+<repo>/
+	xyz_project_test/
+		private_network/
+			main.tf
+			test.tfvars
+		private_network_and_no_egress/
+			main.tf
+			test.tfvars
+		private_network_and_abc/
+			main.tf
+			test.tfvars
+		public_network/
+			main.tf
+			test.tfvars
+```
+
+```
+
+func TestFeatureABC_1(t *testing.T, ctx types.TestContext) {
+	t.Run("OnlyPrivateNetworks/TestIfAPPisUP", func(t *testing.T) {
+		ctx.EnabledOnlyForTests(t, "private_network_and_no_egress","private_network_and_abc")
+		//^ this test will be run only for terraform code in folders "private_network_and_no_egress" or  "private_network_and_abc"
+		remoteAgent := launchAgentInsidePrivateNetwork( ctx.TestConfig.(*ThisTFModuleConfig).network)
+		assertHTTP_200_OK(remoteAgent.sendHTTPRequest2Target( ctx.TestConfig.(*ThisTFModuleConfig).InternalURL).getStatusCode)
+
+	})
+}
+func TestFeatureABC_2(t *testing.T, ctx types.TestContext) {
+	t.Run("Basic/TestIfAPPisUP", func(t *testing.T) {
+		ctx.EnabledOnlyForTests(t, "public_network")
+		// This test code requires infra be in public network
+		assertHTTP_200_OK(sendHTTPRequest2Target( ctx.TestConfig.(*ThisTFModuleConfig).PublicURL).getStatusCode)
+	})
+}
+```
+
+### Enable/disable subset of tests
+
+Leveraging GoLang test utilities inherited by this "framework"
+https://pkg.go.dev/testing#hdr-Subtests_and_Sub_benchmarks
+```
+go test -run ''        # Run all tests.
+go test -run Foo       # Run top-level tests matching "Foo", such as "TestFooBar".
+go test -run Foo/A=    # For top-level tests matching "Foo", run subtests matching "A=".
+go test -run /A=1      # For all top-level tests, run subtests matching "A=1".
+go test -fuzz FuzzFoo  # Fuzz the target matching "FuzzFoo"
+```
+
+
+## References
+[Terratest best practices](https://terratest.gruntwork.io/docs/#testing-best-practices)
+
+[GoLang test framework ](https://pkg.go.dev/testing)
 
 ## Diagrams
 
