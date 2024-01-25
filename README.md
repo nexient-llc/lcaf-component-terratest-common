@@ -146,7 +146,35 @@ go test -run Foo/A=    # For top-level tests matching "Foo", run subtests matchi
 go test -run /A=1      # For all top-level tests, run subtests matching "A=1".
 go test -fuzz FuzzFoo  # Fuzz the target matching "FuzzFoo"
 ```
+```
+// tests/post_deploy_functional/main_tests.go
+func TestCommon(t *testing.T) {
 
+	ctx := types.TestContext{
+		TestConfig: &testimpl.ThisTFModuleConfig{},
+	}
+	lib.RunSetupTestTeardown(t, testConfigsFolder, infraTFVarFileNameDefault, ctx,
+		testimpl.TestXYZ)
+}
+...
+// tests/testimpl/test_impl.go
+func TestXYZ(t *testing.T, ctx types.TestContext) {
+	t.Run("Basic/AzureManagedIdentityON/abc", func(t *testing.T) {
+		...
+	})
+	t.Run("Basic/AzureManagedIdentityOFF/abc", func(t *testing.T) {
+		...
+	})
+
+```
+
+```
+$ cd tests/post_deploy_functional
+go test -run Common # runs all tests from "Common"
+go test -run /Basic/AzureManagedIdentityON # runs all subtests from Basic category that requires Azure Managed Identity be enabled
+go test -run /AzureManagedIdentityON # runs all subtests any category that requires Azure Managed Identity be enabled
+
+```
 
 ## References
 [Terratest best practices](https://terratest.gruntwork.io/docs/#testing-best-practices)
