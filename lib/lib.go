@@ -52,7 +52,12 @@ func internalRunSetupTestTeardown(t *testing.T, dir string, testFile string, tes
 }
 
 func setupTestGeneric(t *testing.T, testCtx types.TestContext) {
-	terraform.InitAndApplyAndIdempotent(t, testCtx.TerratestTerraformOptions)
+	if testCtx.IsTerraformIdempotentApply {
+		terraform.InitAndApplyAndIdempotent(t, testCtx.TerratestTerraformOptions)
+	} else {
+		terraform.InitAndApply(t, testCtx.TerratestTerraformOptions)
+	}
+
 }
 
 func teardownTestGeneric(t *testing.T, testCtx types.TestContext) {

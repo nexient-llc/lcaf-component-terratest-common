@@ -5,7 +5,7 @@
 
 ## Overview
 
-Terratest support utitities and test runners supporting Common Automation Framework (CXAF) terraform modules running automated tests in pipelines.  
+Terratest support utitities and test runners supporting Common Automation Framework (CXAF) terraform modules running automated tests in pipelines.
 
 Goals:
 1. To keep infra test code DRY and composable, reusable functions have been extracted into this dedicated repo which can be included by TF module tests
@@ -176,6 +176,44 @@ go test -run /AzureManagedIdentityON # runs all subtests any category that requi
 
 ```
 
+### One-to-one relationship between examples and tests
+There would be a few scenarios where users would like to run specific tests for each example. Although this framework natively doesn't support doing that. However, as a work-around we can achieve in our `main_test.go` as follows
+
+```go
+func TestKubernetesModule(t *testing.T) {
+    // Provide a map of examples to the tests
+	examplesToTestsMap := map[string]lib.TestFunc{
+		"private-cluster": testimpl.TestPrivateCluster,
+		"public-cluster":  testimpl.TestPublicCluster,
+	}
+	ctx := types.TestContext{
+		TestConfig:                 &testimpl.ThisTFModuleConfig{},
+		IsTerraformIdempotentApply: false,
+	}
+	// Loop through the examples
+	for example, testFunction := range examplesToTestsMap {
+		lib.RunSetupTestTeardown(t, testConfigsExamplesFolderDefault+"/"+example, infraTFVarFileNameDefault, ctx, testFunction)
+	}
+
+}
+```
+
+Currently, these tests run sequentially. Making to run them in parallel can be a future optimization.
+
+### Run non-idempotent terraform apply
+There are a few scenarios where users would like to run `terraform.initAndApply()` instead of `terraform.InitAndApplyAndIdempotent()`, mostly because of bugs in the providers which doesn't support idempotent applies. This can be done by setting the flag `IsTerraformIdempotentApply` in the context as shown below
+```go
+ctx := types.TestContext{
+    TestConfig:                 &testimpl.ThisTFModuleConfig{},
+    IsTerraformIdempotentApply: false,
+}
+```
+
+### Set timeout for go test
+The default timeout of go test is 20 mins which may not be enough for running some heavy tests. Timeout can prove catastropic as it may leave resources provisioned in the cloud and cost us money. Simple way is to increase the timeout during running go tests
+```go
+go test main_test.go -timout 1h
+```
 ## References
 [Terratest best practices](https://terratest.gruntwork.io/docs/#testing-best-practices)
 

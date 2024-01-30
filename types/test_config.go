@@ -17,11 +17,12 @@ type GenericTFModuleConfig struct {
 }
 
 type TestContext struct {
-	TestConfig                any // pointer to a TF module specific inheritance of GenericTFModuleConfig
-	TestConfigFldrName        string
-	TestConfigFileName        string
-	TerratestTerraformOptions *terraform.Options
-	CurrentTestName           string
+	TestConfig                 any // pointer to a TF module specific inheritance of GenericTFModuleConfig
+	TestConfigFldrName         string
+	TestConfigFileName         string
+	TerratestTerraformOptions  *terraform.Options
+	CurrentTestName            string
+	IsTerraformIdempotentApply bool `default:"true"`
 }
 
 func (ctx *TestContext) IsCurrentTest(testName string) bool {
