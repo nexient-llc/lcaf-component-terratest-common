@@ -210,9 +210,9 @@ ctx := types.TestContext{
 ```
 
 ### Set timeout for go test
-The default timeout of go test is 20 mins which may not be enough for running some heavy tests. Timeout can prove catastropic as it may leave resources provisioned in the cloud and cost us money. Simple way is to increase the timeout during running go tests
+The default timeout of go test is `20 mins` which may not be enough for running some heavy tests. If timeout is reached, it may leave resources provisioned in the cloud and cost us money. Simple way is to increase the timeout during running go tests
 ```go
-go test main_test.go -timout 1h
+go test main_test.go -timeout 1h
 ```
 ## References
 [Terratest best practices](https://terratest.gruntwork.io/docs/#testing-best-practices)
