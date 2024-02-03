@@ -11,9 +11,10 @@ import (
 )
 
 func GetAWSApiCloudfrontClient(t *testing.T) *cloudfront.Client {
-	awsApiLambdaClient := cloudfront.NewFromConfig(GetAWSConfig(t))
-	return awsApiLambdaClient
+	awsApiCloudfrontClient := cloudfront.NewFromConfig(GetAWSConfig(t))
+	return awsApiCloudfrontClient
 }
+
 func GetAWSConfig(t *testing.T) (cfg aws.Config) {
 	cfg, err := config.LoadDefaultConfig(context.TODO())
 	require.NoErrorf(t, err, "unable to load SDK config, %v", err)
