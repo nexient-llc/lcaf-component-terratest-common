@@ -4,6 +4,7 @@ go 1.21
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.24.1
+	github.com/aws/aws-sdk-go-v2/service/acm v1.22.7
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.32.6
 	github.com/aws/aws-sdk-go-v2/service/servicediscovery v1.27.6
 	github.com/gruntwork-io/terratest v0.43.12
