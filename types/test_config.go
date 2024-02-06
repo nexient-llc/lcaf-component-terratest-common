@@ -17,20 +17,86 @@ type GenericTFModuleConfig struct {
 }
 
 type TestContext struct {
-	TestConfig                 any // pointer to a TF module specific inheritance of GenericTFModuleConfig
-	TestConfigFldrName         string
-	TestConfigFileName         string
-	TerratestTerraformOptions  *terraform.Options
-	CurrentTestName            string
-	IsTerraformIdempotentApply bool `default:"true"`
+	testConfig                any // pointer to a TF module specific inheritance of GenericTFModuleConfig
+	testConfigFolderName      string
+	testConfigFileName        string
+	terratestTerraformOptions *terraform.Options
+	currentTestName           string
+	testSpecificFlags         map[string]TestFlags
+	allowedTestFlags          AllowedTestFlags
+}
+
+type TestFlags map[string]bool
+type AllowedTestFlags []string
+
+func (t AllowedTestFlags) contains(element string) bool {
+	for _, value := range t {
+		if value == element {
+			return true
+		}
+	}
+	return false
+}
+
+func defaultAllowedTestFlags() AllowedTestFlags {
+	return []string{"SKIP_TEST", "IS_TERRAFORM_IDEMPOTENT_APPLY"}
+
+}
+
+func NewTestContext() *TestContext {
+	return &TestContext{
+		allowedTestFlags: defaultAllowedTestFlags(),
+	}
+}
+
+func (ctx *TestContext) TestSpecificFlags() map[string]TestFlags {
+	return ctx.testSpecificFlags
+}
+
+func (ctx *TestContext) TestConfig() any {
+	return ctx.testConfig
+}
+
+func (ctx *TestContext) SetTestConfig(config any) {
+	ctx.testConfig = config
+}
+
+func (ctx *TestContext) TestConfigFolderName() string {
+	return ctx.testConfigFolderName
+}
+
+func (ctx *TestContext) TestConfigFileName() string {
+	return ctx.testConfigFileName
+}
+
+func (ctx *TestContext) TerratestTerraformOptions() *terraform.Options {
+	return ctx.terratestTerraformOptions
+}
+
+func (ctx *TestContext) SetTerratestTerraformOptions(options *terraform.Options) {
+	ctx.terratestTerraformOptions = options
+
+}
+
+func (ctx *TestContext) AllowedTestFlags() AllowedTestFlags {
+	return ctx.allowedTestFlags
+}
+
+func (ctx *TestContext) CurrentTestName() string {
+	return ctx.currentTestName
+}
+
+func (ctx *TestContext) SetCurrentTestName(testName string) {
+	ctx.currentTestName = testName
 }
 
 func (ctx *TestContext) IsCurrentTest(testName string) bool {
-	return ctx.CurrentTestName == testName
+	return ctx.currentTestName == testName
 }
+
 func (ctx *TestContext) EnabledOnlyForTests(t *testing.T, testName ...string) {
 	for _, testName := range testName {
-		if ctx.CurrentTestName == testName {
+		if ctx.currentTestName == testName {
 			return
 		}
 	}
