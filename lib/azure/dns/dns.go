@@ -1,4 +1,4 @@
-package azure
+package dns
 
 import (
 	"github.com/Azure/azure-sdk-for-go/profiles/latest/dns/mgmt/dns"

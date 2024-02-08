@@ -5,7 +5,6 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
-	"github.com/gruntwork-io/terratest/modules/terraform"
 )
 
 func GetEnvironmentVariables() map[string]string {
@@ -20,11 +19,4 @@ func GetEnvironmentVariables() map[string]string {
 func GetServicePrincipalToken(clientID, clientSecret, tenantID string) (*adal.ServicePrincipalToken, error) {
 	config := auth.NewClientCredentialsConfig(clientID, clientSecret, tenantID)
 	return config.ServicePrincipalToken()
-}
-
-func ConfigureTerraform(terraformDir string, varFiles []string) *terraform.Options {
-	return &terraform.Options{
-		TerraformDir: terraformDir,
-		VarFiles:     varFiles,
-	}
 }
