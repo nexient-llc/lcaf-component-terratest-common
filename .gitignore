@@ -42,3 +42,4 @@ terraform.rc
 .semverbot.toml
 .tflint.hcl
 components/
+.idea

@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -26,18 +25,18 @@ func internalRunSetupTestTeardown(t *testing.T, dir string, testFile string, tes
 		return
 	}
 	// load config
-	LoadRequestedInfraDefinitionFromTfVarsOut(t, dir, testFile, testCtx.TestConfig)
-	testCtx.TerratestTerraformOptions = NewTerratestTerraformOptions(dir, testFile)
-	testCtx.CurrentTestName = filepath.Base(dir)
+	LoadRequestedInfraDefinitionFromTfVarsOut(t, dir, testFile, testCtx.TestConfig())
+	testCtx.SetTerratestTerraformOptions(NewTerratestTerraformOptions(dir, testFile))
+	testCtx.SetCurrentTestName(filepath.Base(dir))
 
 	// Apply - unless Regression Mode or local iteration Stage skipped
 	if !targetInfraReadOnly {
 		stage := test_structure.RunTestStage
 
-		defer stage(t, "teardown_test_"+testCtx.CurrentTestName, func() {
+		defer stage(t, "teardown_test_"+testCtx.CurrentTestName(), func() {
 			teardownTestGeneric(t, testCtx)
 		})
-		stage(t, "setup_test_"+testCtx.CurrentTestName, func() {
+		stage(t, "setup_test_"+testCtx.CurrentTestName(), func() {
 			setupTestGeneric(t, testCtx)
 		})
 	}
@@ -52,11 +51,20 @@ func internalRunSetupTestTeardown(t *testing.T, dir string, testFile string, tes
 }
 
 func setupTestGeneric(t *testing.T, testCtx types.TestContext) {
-	terraform.InitAndApplyAndIdempotent(t, testCtx.TerratestTerraformOptions)
+	flags := testCtx.TestSpecificFlags()
+
+	// Check flag for idempotent apply
+	if flags[testCtx.CurrentTestName()] != nil && !flags[testCtx.CurrentTestName()]["IS_TERRAFORM_IDEMPOTENT_APPLY"] {
+		t.Logf("Performing non-idempotent apply for test: %s", testCtx.CurrentTestName())
+		terraform.InitAndApplyAndIdempotent(t, testCtx.TerratestTerraformOptions())
+	} else {
+		t.Logf("Performing idempotent apply for test: %s", testCtx.CurrentTestName())
+		terraform.InitAndApply(t, testCtx.TerratestTerraformOptions())
+	}
 }
 
 func teardownTestGeneric(t *testing.T, testCtx types.TestContext) {
-	terraform.Destroy(t, testCtx.TerratestTerraformOptions)
+	terraform.Destroy(t, testCtx.TerratestTerraformOptions())
 }
 
 func ForEveryExampleRunTest(t *testing.T, infraTests2Run []string, testVarFileName string, testCtx types.TestContext, testFunc ...TestFunc) {
@@ -73,8 +81,8 @@ func internalRunSetupTestTeardownDestructive(t *testing.T, dir string, testFile 
 	internalRunSetupTestTeardown(t, dir, testFile, testCtx, false, testFunc...)
 }
 
-func RunSetupTestTeardown(t *testing.T, dir string, testFile string, testCtx types.TestContext, testFunc ...TestFunc) {
-	infra2TestTfFolder, testVarFileName := FindTestConfig(dir, testFile)
+func RunSetupTestTeardown(t *testing.T, testCtx types.TestContext, testFunc ...TestFunc) {
+	infra2TestTfFolder, testVarFileName := FindTestConfig(testCtx.TestConfigFolderName(), testCtx.TestConfigFileName())
 	var infraTests2Run []string
 	if IsExamplesFolder(t, infra2TestTfFolder) {
 		infraTests2Run = append(infraTests2Run, ListAllExamples(t, infra2TestTfFolder)...)
@@ -85,8 +93,8 @@ func RunSetupTestTeardown(t *testing.T, dir string, testFile string, testCtx typ
 
 }
 
-func RunNonDestructiveTest(t *testing.T, dir string, testFile string, testCtx types.TestContext, testFunc ...TestFunc) {
-	infra2TestTfFolder, testVarFileName := FindTestConfig(dir, testFile)
+func RunNonDestructiveTest(t *testing.T, testCtx types.TestContext, testFunc ...TestFunc) {
+	infra2TestTfFolder, testVarFileName := FindTestConfig(testCtx.TestConfigFolderName(), testCtx.TestConfigFileName())
 	demandDeployedTerraformStateExists(t, infra2TestTfFolder)
 	demandAllTests2RunAreComposableOnes(t, testFunc)
 	internalRunSetupTestTeardownReadonly(t, infra2TestTfFolder, testVarFileName, testCtx, testFunc...)
@@ -95,7 +103,7 @@ func RunNonDestructiveTest(t *testing.T, dir string, testFile string, testCtx ty
 // stops test by 'require' if error
 func demandDeployedTerraformStateExists(t *testing.T, infra2TestTfFolder string) {
 	if !isDeployedTerraformStateDetected(infra2TestTfFolder) {
-		fmt.Println("bad:can not detect deployed TF folder. dir .terraform does not exists or unreadable")
+		t.Logf("bad:can not detect deployed TF folder. dir .terraform does not exists or unreadable\n")
 		t.FailNow()
 	}
 }
@@ -114,7 +122,7 @@ func demandAllTests2RunAreComposableOnes(t *testing.T, testFunc []TestFunc) {
 	for _, fun := range testFunc {
 		funcName := getFunctionNameShort(fun)
 		if !isFunctionNameAComposableOne(funcName) {
-			fmt.Println("bad: for high env regression, only low level/composable test code can be used and no text fixtures.\n" +
+			t.Logf("bad: for high env regression, only low level/composable test code can be used and no text fixtures.\n" +
 				"test function " + funcName + " does not look like composable one - does not follow naming convention for those.\n" +
 				"should have name prefix " + FUNC_NAME_CONVENTION_COMPOSABLE_PREFIX)
 			t.FailNow()

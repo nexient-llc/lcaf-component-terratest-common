@@ -5,7 +5,7 @@
 
 ## Overview
 
-Terratest support utitities and test runners supporting Common Automation Framework (CXAF) terraform modules running automated tests in pipelines.  
+Terratest support utitities and test runners supporting Common Automation Framework (CXAF) terraform modules running automated tests in pipelines.
 
 Goals:
 1. To keep infra test code DRY and composable, reusable functions have been extracted into this dedicated repo which can be included by TF module tests
@@ -176,6 +176,42 @@ go test -run /AzureManagedIdentityON # runs all subtests any category that requi
 
 ```
 
+### TestContext Builder
+
+The `TestContext` is a struct which holds the configuration for the test suite. The `TestContext` is passed to the test functions which use the configuration to run the tests.
+
+A context builder is implemented which makes it easier for the consumers to construct the `TestContext` in their `go` tests.
+The `TestContext` builder is implemented as a `struct` with a `Build` function which returns a pointer to the `TestContext` struct.
+There are several `Set` methods that are useful to construct the `TestContext`. Below is an example of how to use the `TestContext` builder.
+
+```go
+    ctx := types.CreateTestContextBuilder().
+		SetTestConfig(&testimpl.ThisTFModuleConfig{}).
+		SetTestConfigFileName(infraTFVarFileNameDefault).
+		SetTestConfigFolderName(testConfigsExamplesFolderDefault).
+		SetTestSpecificFlags(map[string]types.TestFlags{
+			"complete": {
+				"IS_TERRAFORM_IDEMPOTENT_APPLY": false,
+			},
+		}).
+		Build()
+```
+The `Build()` method also performs certain validations to ensure that the `TestContext` is constructed correctly.
+
+The optional field `TestSpecificFlags` is used to set specific flags for individual tests.
+The flags are used to control the behavior of the tests (examples).
+The flags are set as a map of string to `TestFlags` where `TestFlags` is a map strings.
+Currently, the `TestFlags` supports two flags
+- `IS_TERRAFORM_IDEMPOTENT_APPLY`: This flag is used to control whether the terraform apply is idempotent or not. In few scenarios, the `terraform apply` is not `idempotent` (mostly because of bugs in providers) and the flag can be used to control the behavior of the test.
+- `SKIP_TEST`: This flag is used to skip the test (example). This is helpful in scenarios where the example is complete but the developer doesn't have the right means to test it. In that case, we could still have the example in the `/examples` folder but instruct our test framework to skip it
+
+For sake of flexibility, setters and getters are also provided on the `TestContext` to use then when needed.
+
+### Set timeout for go test
+The default timeout of go test is `20 mins` which may not be enough for running some heavy tests. If timeout is reached, it may leave resources provisioned in the cloud and cost us money. Simple way is to increase the timeout during running go tests
+```go
+go test main_test.go -timeout 1h
+```
 ## References
 [Terratest best practices](https://terratest.gruntwork.io/docs/#testing-best-practices)
 
