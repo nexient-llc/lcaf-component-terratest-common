@@ -56,10 +56,10 @@ func setupTestGeneric(t *testing.T, testCtx types.TestContext) {
 	// Check flag for idempotent apply
 	if flags[testCtx.CurrentTestName()] != nil && !flags[testCtx.CurrentTestName()]["IS_TERRAFORM_IDEMPOTENT_APPLY"] {
 		t.Logf("Performing non-idempotent apply for test: %s", testCtx.CurrentTestName())
-		terraform.InitAndApplyAndIdempotent(t, testCtx.TerratestTerraformOptions())
+		terraform.InitAndApply(t, testCtx.TerratestTerraformOptions())
 	} else {
 		t.Logf("Performing idempotent apply for test: %s", testCtx.CurrentTestName())
-		terraform.InitAndApply(t, testCtx.TerratestTerraformOptions())
+		terraform.InitAndApplyAndIdempotent(t, testCtx.TerratestTerraformOptions())
 	}
 }
 
