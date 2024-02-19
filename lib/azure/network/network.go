@@ -17,3 +17,9 @@ func GetSubnetsClient(spt *adal.ServicePrincipalToken, subscriptionID string) ne
 	subnetsClient.Authorizer = autorest.NewBearerAuthorizer(spt)
 	return subnetsClient
 }
+
+func GetFirewallsClient(spt *adal.ServicePrincipalToken, subscriptionID string) network.AzureFirewallsClient {
+	firewallsClient := network.NewAzureFirewallsClient(subscriptionID)
+	firewallsClient.Authorizer = autorest.NewBearerAuthorizer(spt)
+	return firewallsClient
+}
