@@ -23,3 +23,8 @@ func GetFirewallsClient(spt *adal.ServicePrincipalToken, subscriptionID string) 
 	firewallsClient.Authorizer = autorest.NewBearerAuthorizer(spt)
 	return firewallsClient
 }
+func GetNsgClient(spt *adal.ServicePrincipalToken, subscriptionID string) network.SecurityGroupsClient {
+	nsgClient := network.NewSecurityGroupsClient(subscriptionID)
+	nsgClient.Authorizer = autorest.NewBearerAuthorizer(spt)
+	return nsgClient
+}
